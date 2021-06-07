@@ -5,7 +5,7 @@ using OpenQA.Selenium;
 using System.Net.Http;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
-
+using System.Threading;
 
 namespace k
 {
@@ -284,18 +284,6 @@ namespace k
 	        //Dragged and dropped.	
             act.MoveToElement(img2).Perform();
         }
-
-        [Fact]
-        public void InfiniteScroll() {
-            // Act
-            var driver = new ChromeDriver();
-            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/infinite_scroll");
-           
-           IJavaScriptExecutor js = (IJavaScriptExecutor) driver;
-            js.ExecuteScript("window.scrollTo(0, document.body.scrollHeight)");
-            
-        }
-
         [Fact]
         public void NestedFrames() {
             // Act
@@ -303,23 +291,46 @@ namespace k
             driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/nested_frames");
                                  
             /**************** Switching to the Left Frame ****************/
-            //Select Parent frame
             driver.SwitchTo().ParentFrame();
-            //Selecting top Frameset
             driver.SwitchTo().Frame(driver.FindElement(By.CssSelector("[name = 'frame-top']")));
-            //Left Frame
             driver.SwitchTo().Frame(driver.FindElement(By.CssSelector("[name = 'frame-left']")));
  
             IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
             var currentFrame = jsExecutor.ExecuteScript("return self.name");
             Console.WriteLine(currentFrame);     
+
+            /**************** Switching to the Middle Frame ****************/
+            driver.SwitchTo().ParentFrame();
+            driver.SwitchTo().Frame(driver.FindElement(By.CssSelector("[name = 'frame-middle']")));
+ 
+            jsExecutor = (IJavaScriptExecutor)driver;
+            currentFrame = jsExecutor.ExecuteScript("return self.name");
+            Console.WriteLine(currentFrame);
+
+            /**************** Switching to the Right Frame ****************/
+            driver.SwitchTo().ParentFrame();
+            driver.SwitchTo().Frame(driver.FindElement(By.CssSelector("[name = 'frame-right']")));
+ 
+            jsExecutor = (IJavaScriptExecutor)driver;
+            currentFrame = jsExecutor.ExecuteScript("return self.name");
+            Console.WriteLine(currentFrame);
+
+            /**************** Switching to the Bottom Frame ****************/
+            driver.SwitchTo().DefaultContent();
+            driver.SwitchTo().Frame(driver.FindElement(By.CssSelector("[name = 'frame-bottom']")));
+ 
+            jsExecutor = (IJavaScriptExecutor)driver;
+            currentFrame = jsExecutor.ExecuteScript("return self.name");
+            Console.WriteLine(currentFrame);
+            driver.Close();
         }
+
         [Fact]
         public void Frames() {
             // Act
-            var driver = new ChromeDriver();
+            var driver = new ChromeDriver(); 
             driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/frames");
-                      
+            
             //Store the web element
             IWebElement iframeLink = driver.FindElement(By.XPath("//*[@id='content']/div/ul/li[2]/a"));
             iframeLink.Click();
@@ -332,7 +343,38 @@ namespace k
             bodyFrame.SendKeys("This is a Testing Text");
             driver.Close();
         }
+
+        [Fact]
+        public void ChalllengingDOM() {
+            // Act
+            var driver = new ChromeDriver(); 
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/challenging_dom");
+            driver.Manage().Window.Maximize();
+            
+            IWebElement editButton = driver.FindElement(By.XPath("//td[text()='Definiebas4']/..//a[@href='#edit'][last()]"));
+            Assert.NotNull(editButton);
+
+            IWebElement deleteButton = driver.FindElement(By.XPath("//td[text()='Definiebas4']/../td[last()]/a[@href='#delete']"));
+            Assert.NotNull(deleteButton);
+            driver.Close();
+        }
+        [Fact]
+        public void InfiniteScroll() {
+            // Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/infinite_scroll");
+            driver.Manage().Window.Maximize();
+
+            //Action
+            int OriginalCount = driver.FindElements(By.XPath("//div[@class='jscroll-added']")).Count;
+
+            IJavaScriptExecutor js = (IJavaScriptExecutor) driver;
+            js.ExecuteScript("window.scrollTo(0, document.body.scrollHeight)");
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
+            int IncrementedCount = driver.FindElements(By.XPath("//div[@class='jscroll-added']")).Count;
+            Assert.NotEqual(OriginalCount, IncrementedCount);
+            driver.Close();
+        }
     }
 }
-
 
