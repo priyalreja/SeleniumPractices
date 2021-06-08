@@ -5,8 +5,6 @@ using OpenQA.Selenium;
 using System.Net.Http;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
-using System.Threading;
-
 namespace k
 {
     public class UnitTest1
@@ -374,6 +372,101 @@ namespace k
             int IncrementedCount = driver.FindElements(By.XPath("//div[@class='jscroll-added']")).Count;
             Assert.NotEqual(OriginalCount, IncrementedCount);
             driver.Close();
+        }
+
+        [Fact]
+        public void notificationMessages()
+        {
+            //Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/notification_message_rendered");
+            driver.Manage().Window.Maximize();
+
+            //Action
+            driver.FindElement(By.XPath("//a[@href='/notification_message']")).Click();
+
+            //TearDown
+            driver.Close();
+        }
+        [Fact]
+        public void FileDownload()
+        {
+            //Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/download");
+            driver.Manage().Window.Maximize();
+
+            //Action
+            driver.FindElement(By.XPath("//*[@id='content']/div/a[1]")).Click();            
+        }
+          [Fact]
+        public void FileUpload()
+        {
+            //Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/upload");
+            driver.Manage().Window.Maximize();
+
+            var fileUpload1 = driver.FindElement(By.XPath("//input[@id='file-upload']"));
+            fileUpload1.SendKeys("C:\\Users\\priyalr\\Downloads\\luminoslogo.png");
+
+            driver.FindElement(By.XPath("//input[@class='button']")).Click();
+        }
+
+        [Fact]
+        public void JqueryMenus()
+        {
+            //Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/jqueryui/menu#");
+            driver.Manage().Window.Maximize();
+
+            //Action
+            var enabled = driver.FindElement(By.XPath("//*[@id='ui-id-2']"));
+            enabled.Click();
+
+            driver.FindElement(By.XPath("//*[@id='ui-id-4']")).Click();
+        }
+
+        [Fact]
+        public void ShadowDOM()
+        {
+            //Act
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/shadowdom");
+            driver.Manage().Window.Maximize();
+
+            //Action
+            var block1= driver.FindElement(By.XPath("//div[@id='content']/my-paragraph[1]/span")).Text;
+            Console.WriteLine(block1);
+
+            var block2= driver.FindElement(By.XPath("//div[@id='content']/my-paragraph[2]/ul")).Text;
+            Console.WriteLine(block2);
+        }
+   
+        [Fact]
+        public void testLogin() {
+            var driver = new ChromeDriver();
+            driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/login");
+            driver.Manage().Window.Maximize();
+            SignInPage signInPage = new SignInPage(driver);
+            signInPage.loginValidUser("tomsmith", "SuperSecretPassword!");
+        }
+        public class SignInPage {
+            protected IWebDriver driver;
+            private By usernameBy = By.Id("username");
+            private By passwordBy = By.Id("password");
+            private By signinBy = By.ClassName("radius");
+
+            public SignInPage(IWebDriver driver){
+                this.driver = driver;
+            }
+
+            public void loginValidUser(String userName, String password) {
+                driver.FindElement(usernameBy).SendKeys(userName);
+                driver.FindElement(passwordBy).SendKeys(password);
+                driver.FindElement(signinBy).Click();
+            }
         }
     }
 }
