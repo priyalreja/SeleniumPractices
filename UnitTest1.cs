@@ -7,7 +7,7 @@ using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 namespace k
 {
-    public class UnitTest1
+    public class UnitTest1: BaseSetup
     {
         [Fact]
         public void ShowDeleteButton()
@@ -93,18 +93,19 @@ namespace k
             var driver = new ChromeDriver();
             driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/drag_and_drop");
            //Element which needs to drag.    		
-        	IWebElement From=driver.FindElement(By.XPath("//*[@id='column-a']"));	
+        	IWebElement From=driver.FindElement(By.XPath("//div[@id='column-a']"));	
          
             //Element on which need to drop.		
-            IWebElement To=driver.FindElement(By.XPath("//*[@id='column-b']"));		
+            IWebElement To=driver.FindElement(By.XPath("//div[@id='column-b']"));		
          		
             //Using Action class for drag and drop.		
             Actions act=new Actions(driver);					
 
 	        //Dragged and dropped.	
-            act.ClickAndHold(From).MoveToElement(To).Release(To).Build().Perform();
-            
-           // act.DragAndDrop(From, To).Build().Perform();	
+          //  act.ClickAndHold(From).MoveToElement(To).Release().Build().Perform();
+          //  driver.SwitchTo().DefaultContent();
+           // act.DragAndDrop(From, To).Perform();
+            act.DragAndDrop(From, To).Build().Perform();
         }
         [Fact]
         public void Dropdown() {
@@ -443,31 +444,42 @@ namespace k
             var block2= driver.FindElement(By.XPath("//div[@id='content']/my-paragraph[2]/ul")).Text;
             Console.WriteLine(block2);
         }
-   
+        
         [Fact]
         public void testLogin() {
-            var driver = new ChromeDriver();
+            BaseSetupBrowser("chrome");
+           // driver.Url = "http://the-internet.herokuapp.com/login";
+            //var driver = new ChromeDriver();
             driver.Navigate().GoToUrl(@"http://the-internet.herokuapp.com/login");
             driver.Manage().Window.Maximize();
-            SignInPage signInPage = new SignInPage(driver);
-            signInPage.loginValidUser("tomsmith", "SuperSecretPassword!");
-        }
-        public class SignInPage {
-            protected IWebDriver driver;
-            private By usernameBy = By.Id("username");
-            private By passwordBy = By.Id("password");
-            private By signinBy = By.ClassName("radius");
 
-            public SignInPage(IWebDriver driver){
-                this.driver = driver;
-            }
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.loginValidUser("tomsmith", "IncorrectPassword");
 
-            public void loginValidUser(String userName, String password) {
-                driver.FindElement(usernameBy).SendKeys(userName);
-                driver.FindElement(passwordBy).SendKeys(password);
-                driver.FindElement(signinBy).Click();
-            }
+            var welcomeText = driver.FindElement(By.XPath("//*[@id='flash']")).Text.Equals( "You logged into a secure area!");
+            if(!welcomeText)
+                loginPage.loginValidUser("tomsmith", "SuperSecretPassword!");
+
+            // SignInPage signInPage = new SignInPage(driver);
+            // signInPage.loginValidUser("tomsmith", "SuperSecretPassword!");
         }
+
+        // public class SignInPage {
+        //     protected IWebDriver driver;
+        //     private By usernameBy = By.Id("username");
+        //     private By passwordBy = By.Id("password");
+        //     private By signinBy = By.ClassName("radius");
+
+        //     public SignInPage(IWebDriver driver){
+        //         this.driver = driver;
+        //     }
+
+        //     public void loginValidUser(String userName, String password) {
+        //         driver.FindElement(usernameBy).SendKeys(userName);
+        //         driver.FindElement(passwordBy).SendKeys(password);
+        //         driver.FindElement(signinBy).Click();
+        //     }
+        // }
     }
 }
 
